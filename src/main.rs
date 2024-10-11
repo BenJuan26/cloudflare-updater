@@ -57,8 +57,8 @@ fn build_config() -> Result<Config, ConfigError> {
 
 fn get_public_ip(client: &Client) -> BoxResult<String> {
     let body = client.get("https://cloudflare.com/cdn-cgi/trace")
-        .send().map_err(|err| format!("error getting public ip: {err}"))?
-        .text().map_err(|err| format!("error getting public ip: {err}"))?;
+        .send().map_err(|err| format!("error getting public ip: {err:?}"))?
+        .text().map_err(|err| format!("error getting public ip: {err:?}"))?;
 
     let lines = body.split("\n");
     for line in lines {
@@ -76,14 +76,14 @@ fn get_dns_record(client: &Client, config: &AppConfig) -> BoxResult<ARecord> {
         CF_API_URL_BASE, config.zone_id, config.record_id))
         .bearer_auth(&config.token)
         .send()
-        .map_err(|err| format!("error getting dns record: {err}"))?;
+        .map_err(|err| format!("error getting dns record: {err:?}"))?;
 
     let status_code = resp.status().as_u16();
     if status_code != 200 {
         bail!(format!("unexpected status code while getting dns record: {}", status_code));
     }
 
-    let result: DnsResponse = resp.json().map_err(|err| format!("error getting dns record: {err}"))?;
+    let result: DnsResponse = resp.json().map_err(|err| format!("error getting dns record: {err:?}"))?;
     if !result.success {
         bail!("dns get result was unsuccessful");
     }
@@ -97,7 +97,7 @@ fn update_dns_record(record: &ARecord, client: &Client, config: &AppConfig) -> B
         .bearer_auth(&config.token)
         .json(record)
         .send()
-        .map_err(|err| format!("error updating dns record: {err}"))?;
+        .map_err(|err| format!("error updating dns record: {err:?}"))?;
 
     let status_code = res.status().as_u16();
     if status_code != 200 {
