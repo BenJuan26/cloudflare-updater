@@ -18,6 +18,8 @@ RUN cargo build --release
 
 FROM debian:trixie-slim
 
+RUN apt-get update && apt-get install -y ca-certificates
+
 # copy the build artifact from the build stage
 COPY --from=build /cloudflare-updater/target/release/cloudflare-updater .
 
