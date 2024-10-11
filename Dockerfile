@@ -16,7 +16,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/cloudflare_updater*
 RUN cargo build --release
 
-FROM debian:trixie
+FROM debian:trixie-slim
 
 # copy the build artifact from the build stage
 COPY --from=build /cloudflare-updater/target/release/cloudflare-updater .
