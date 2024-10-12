@@ -20,7 +20,12 @@ Periodically monitors the container's public IP address and updates a Cloudflare
 Docker:
 
 ```sh
-docker run -e CF_INTERVAL=120 -e CF_ZONE_ID=some_zone_id -e CF_RECORD_ID=some_record_id -e CF_TOKEN=some_token -d benjuan26/cloudflare-updater:latest
+docker run \
+  -e CF_INTERVAL=120 \
+  -e CF_ZONE_ID=some_zone_id \
+  -e CF_RECORD_ID=some_record_id \
+  -e CF_TOKEN=some_token \
+  -d benjuan26/cloudflare-updater:latest
 ```
 
 Docker-compose:
