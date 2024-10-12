@@ -4,7 +4,9 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use serde::Serialize;
 use simple_error::bail;
+use std::env;
 use std::error::Error;
+use std::process::ExitCode;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -129,21 +131,46 @@ fn check_and_update(cached_ip: &String, client: &Client, config: &AppConfig) -> 
     Ok(UpdateResult { ip: ip.to_string(), changed })
 }
 
-fn main() {
+fn dump_config(config: &AppConfig) {
+    println!("Using config:");
+    println!("CF_INTERVAL: {}", config.interval);
+    println!("CF_ZONE_ID: {}", config.zone_id);
+    println!("CF_RECORD_ID: {}", config.record_id);
+    let token_masked: String = config.token.chars().map(|_| "*").collect();
+    println!("CF_TOKEN (masked): {token_masked}");
+}
+
+fn ensure_env() -> BoxResult<()> {
+    let required_vars = vec!["CF_ZONE_ID", "CF_RECORD_ID", "CF_TOKEN"];
+    for var in required_vars.iter() {
+        let res = env::var(var);
+        match res {
+            Ok(val) => {
+                if val == "".to_string() {
+                    bail!(format!("Environment variable {var} must be set"));
+                }
+            },
+            Err(_) => bail!(format!("Environment variable {var} must be set")),
+        }
+    }
+
+    Ok(())
+}
+
+fn main() -> ExitCode {
     println!("Starting...");
 
     let client = Client::new();
+    if let Err(err) = ensure_env() {
+        println!("{err}");
+        return ExitCode::from(1);
+    }
     let config: AppConfig = build_config()
         .unwrap()
         .try_deserialize()
         .unwrap();
 
-    println!("Using config:");
-    println!("CF_INTERVAL: {}", config.interval);
-    println!("CF_ZONE_ID: {}", config.zone_id);
-    println!("CF_RECORD_ID: {}", config.record_id);
-    let token_redacted: String = config.token.chars().map(|_| "*").collect();
-    println!("CF_TOKEN: {token_redacted}");
+    dump_config(&config);
 
     let mut cached_ip = "".to_string();
 
